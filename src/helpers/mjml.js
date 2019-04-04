@@ -9,6 +9,10 @@ import { execFile, exec } from 'helpers/fs'
 import storage from 'electron-json-storage'
 import { promisify } from 'es6-promisify'
 
+import Handlebars from 'handlebars'
+import HandlebarsHelpers from 'handlebars-helpers'
+HandlebarsHelpers({handlebars: Handlebars})
+
 const storageGet = promisify(storage.get)
 
 export default function(mjmlContent, filePath, mjmlPath = null, options = {}) {
@@ -72,7 +76,17 @@ export default function(mjmlContent, filePath, mjmlPath = null, options = {}) {
               : null,
           }
 
-          const res = mjml2html(mjmlContent, mjmlOptions)
+          const stdinStream = new stream.Readable()
+          let data = await execFile('node', [`${filePath.replace('.mjml', '.js')}`], { maxBuffer: 512 * 512 * 1024 }, stdinStream)
+          try { 
+            if(data.err)
+              data = {}
+            else
+              data = JSON.parse(data.stdout)
+          } catch(err) {
+            data = {}
+          }          
+          const res = mjml2html(Handlebars.compile(mjmlContent)(data), mjmlOptions)
 
           resolve({ html: res.html || '', errors: res.errors || [] })
         }
