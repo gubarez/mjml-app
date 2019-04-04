@@ -85,7 +85,7 @@ export default function(mjmlContent, filePath, mjmlPath = null, options = {}) {
               data = JSON.parse(data.stdout)
           } catch(err) {
             data = {}
-          }          
+          }
           const res = mjml2html(Handlebars.compile(mjmlContent)(data), mjmlOptions)
 
           resolve({ html: res.html || '', errors: res.errors || [] })
